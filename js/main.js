@@ -5,6 +5,7 @@ import {
   getCurrentTurnElement,
   getGameStatusElement,
   getReplayButtonElement,
+  getCellListElement,
 } from "./selectors.js";
 import { checkGameStatus } from "./utils.js";
 
@@ -98,10 +99,56 @@ function handleCellClick(cell, index) {
 }
 
 function initCellElementList() {
-  const cellElementList = getCellElementList();
-  cellElementList.forEach((cell, index) => {
-    cell.addEventListener("click", () => handleCellClick(cell, index));
+  // const cellElementList = getCellElementList();
+  // cellElementList.forEach((cell, index) => {
+  //   cell.addEventListener("click", () => handleCellClick(cell, index));
+  // });
+
+  // set index for li element
+  const liListElement = getCellElementList();
+  liListElement.forEach((cell, index) => {
+    cell.dataset.idx = index;
   });
+
+  //   delegation for ul element
+  const ulElementList = getCellListElement();
+  if (ulElementList) {
+    ulElementList.addEventListener("click", (event) => {
+      if (event.target.tagName !== "LI") return;
+
+      handleCellClick(event.target, Number.parseInt(event.target.dataset.idx));
+    });
+  }
+}
+
+function initReplayButton() {
+  const replayButtonElement = getReplayButtonElement();
+
+  // attach event for replay button
+  if (replayButtonElement) {
+    replayButtonElement.addEventListener("click", () => {
+      currentTurn = TURN.CROSS;
+      gameStatus = GAME_STATUS.PLAYING;
+      // reset game status
+      const gameStatusElement = getGameStatusElement();
+      gameStatusElement.textContent = GAME_STATUS.PLAYING;
+
+      // reset current turn
+      const currentTurnElement = getCurrentTurnElement();
+      currentTurnElement.classList.remove(TURN.CROSS, TURN.CIRCLE);
+      currentTurnElement.classList.add(TURN.CROSS);
+
+      // hidden replay button
+      replayButtonElement.classList.remove("show");
+
+      // remove class
+      const cellElementList = getCellElementList();
+      for (const cellElement of cellElementList) {
+        cellElement.classList.remove(TURN.CIRCLE, TURN.CROSS, "win");
+      }
+      cellValues = cellValues.map((x) => "");
+    });
+  }
 }
 /**
  * TODOs
@@ -124,4 +171,5 @@ function initCellElementList() {
   initCellElementList();
 
   // bind click event for replay button
+  initReplayButton();
 })();
